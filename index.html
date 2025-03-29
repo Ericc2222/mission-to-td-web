@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission to Touch Down</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas" width="1024" height="768"></canvas>
+    </div>
+    <div class="controls-info">
+        <p>Controls: ↑=Thrust, ←→=Move, Space=Parachute, ESC=Quit</p>
+    </div>
+    <!-- Game Sounds -->
+    <audio id="thrust-sound" src="assets/thrust.mp3" preload="auto"></audio>
+    <audio id="crash-sound" src="assets/crash.mp3" preload="auto"></audio>
+    <audio id="victory-sound" src="assets/victory.mp3" preload="auto"></audio>
+    
+    <!-- Scripts -->
+    <script src="js/constants.js"></script>
+    <script src="js/planet.js"></script>
+    <script src="js/spacecraft.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
