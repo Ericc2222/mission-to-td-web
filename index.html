@@ -2,21 +2,83 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mission to Touch Down</title>
     <link rel="stylesheet" href="css/style.css">
+    <script>
+        // Prevent page zooming on mobile which can break the game
+        document.addEventListener('gesturestart', function(e) {
+            e.preventDefault();
+        });
+        document.addEventListener('touchmove', function(e) {
+            if (e.touches.length > 1) {
+                e.preventDefault();
+            }
+        });
+    </script>
 </head>
 <body>
     <div class="game-container">
-        <canvas id="gameCanvas" width="1024" height="768"></canvas>
+        <canvas id="gameCanvas" width="1280" height="720"></canvas>
     </div>
     <div class="controls-info">
-        <p>Controls: ↑=Thrust, ←→=Move, Space=Parachute, ESC=Quit</p>
+        <p>Controls: ↑=Thrust, ←→=Move, P=Parachute, ESC=Quit, Enter=Select/Start</p>
+    </div>
+    
+    <!-- Touch Controls for Mobile -->
+    <div class="touch-controls">
+        <div id="touch-left" class="touch-button">←</div>
+        <div id="touch-thrust" class="touch-button">↑</div>
+        <div id="touch-right" class="touch-button">→</div>
+        <div id="touch-parachute" class="touch-button">P</div>
+        <div id="touch-action" class="touch-button">✓</div>
     </div>
     <!-- Game Sounds -->
     <audio id="thrust-sound" src="assets/thrust.mp3" preload="auto"></audio>
     <audio id="crash-sound" src="assets/crash.mp3" preload="auto"></audio>
     <audio id="victory-sound" src="assets/victory.mp3" preload="auto"></audio>
+    
+    <!-- Error handling for debugging -->
+    <div id="error-display" style="position: fixed; top: 10px; left: 10px; background: rgba(255,0,0,0.8); padding: 10px; color: white; max-width: 80%; z-index: 9999; display: none;">
+        <span id="error-message"></span>
+        <button id="clear-error" style="background: #fff; color: #000; border: none; padding: 5px 10px; margin-top: 10px; cursor: pointer;">Dismiss</button>
+    </div>
+    
+    <script>
+        // Global error handler to catch and display errors
+        window.addEventListener('error', function(event) {
+            console.log('Error caught:', event);
+            var errorDisplay = document.getElementById('error-display');
+            var errorMessage = document.getElementById('error-message');
+            
+            if (errorDisplay && errorMessage) {
+                // Only show errors that have real information
+                if (event.message && event.message !== "undefined" && event.message !== "Script error.") {
+                    errorDisplay.style.display = 'block';
+                    errorMessage.innerHTML = '<strong>Error:</strong> ' + event.message + 
+                        '<br><br>at: ' + (event.filename || 'unknown') + ':' + (event.lineno || '?');
+                } else {
+                    // Hide the error display for generic errors
+                    errorDisplay.style.display = 'none';
+                }
+            }
+        }, true);
+        
+        // Add event listener for the dismiss button
+        document.addEventListener('DOMContentLoaded', function() {
+            var clearErrorBtn = document.getElementById('clear-error');
+            var errorDisplay = document.getElementById('error-display');
+            
+            if (clearErrorBtn && errorDisplay) {
+                clearErrorBtn.addEventListener('click', function() {
+                    errorDisplay.style.display = 'none';
+                });
+            }
+        });
+        
+        // Log when the scripts start loading
+        console.log('HTML loaded, preparing to load scripts...');
+    </script>
     
     <!-- Scripts -->
     <script src="js/constants.js"></script>

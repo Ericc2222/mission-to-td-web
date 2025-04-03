@@ -1,14 +1,38 @@
 // Initialize the game when the DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Get the canvas element
-    const canvas = document.getElementById('gameCanvas');
-    
-    // Create and start the game
-    const game = new Game(canvas);
-    game.start();
-    
-    // Create placeholder sounds if needed
-    createPlaceholderSounds();
+    try {
+        // Get the canvas element
+        const canvas = document.getElementById('gameCanvas');
+        if (!canvas) {
+            console.error("Canvas element not found");
+            return;
+        }
+        
+        console.log("Canvas found with dimensions:", canvas.width, "x", canvas.height);
+        
+        // Create and start the game
+        console.log("Starting game...");
+        const game = new Game(canvas);
+        console.log("Game object created successfully");
+        game.start();
+        console.log("Game started");
+        
+        // Create placeholder sounds if needed
+        createPlaceholderSounds();
+    } catch (error) {
+        console.error("Game initialization error:", error);
+        // Display error on screen
+        const errorDiv = document.createElement("div");
+        errorDiv.style.position = "fixed";
+        errorDiv.style.top = "10px";
+        errorDiv.style.left = "10px";
+        errorDiv.style.backgroundColor = "red";
+        errorDiv.style.color = "white";
+        errorDiv.style.padding = "10px";
+        errorDiv.style.zIndex = "9999";
+        errorDiv.textContent = "Game error: " + error.message;
+        document.body.appendChild(errorDiv);
+    }
 });
 
 // Function to create placeholder sounds if real ones aren't available

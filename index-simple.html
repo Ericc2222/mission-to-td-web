@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission to Touch Down - Simple Version</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas" width="1280" height="720"></canvas>
+    </div>
+    
+    <script>
+        // Simple game initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Draw a simple scene
+            function draw() {
+                // Clear canvas
+                ctx.fillStyle = 'black';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw stars
+                for (let i = 0; i < 100; i++) {
+                    ctx.fillStyle = 'white';
+                    const x = Math.random() * canvas.width;
+                    const y = Math.random() * canvas.height;
+                    const size = Math.random() > 0.95 ? 2 : 1;
+                    ctx.fillRect(x, y, size, size);
+                }
+                
+                // Draw planet surface
+                ctx.fillStyle = '#3333ff';
+                ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
+                
+                // Draw spacecraft
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.moveTo(canvas.width/4, 200);
+                ctx.lineTo(canvas.width/4 - 20, 230);
+                ctx.lineTo(canvas.width/4 + 20, 230);
+                ctx.fill();
+                
+                // Draw text
+                ctx.font = '40px Arial';
+                ctx.fillStyle = 'white';
+                ctx.textAlign = 'center';
+                ctx.fillText('Mission to Touch Down', canvas.width/2, 100);
+                
+                ctx.font = '24px Arial';
+                ctx.fillText('Press any key to start', canvas.width/2, 150);
+                
+                // Animation loop
+                requestAnimationFrame(draw);
+            }
+            
+            // Start drawing
+            draw();
+            
+            // Add key event
+            document.addEventListener('keydown', function() {
+                // Just for show - you'd typically start the game here
+                ctx.fillStyle = 'green';
+                ctx.fillRect(0, 0, canvas.width, 50);
+                ctx.fillStyle = 'white';
+                ctx.fillText('Key pressed!', canvas.width/2, 30);
+            });
+        });
+    </script>
+</body>
+</html>

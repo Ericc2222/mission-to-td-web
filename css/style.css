@@ -34,17 +34,74 @@ body {
     color: #999;
 }
 
-/* Responsive adjustments for smaller screens */
-@media (max-height: 800px) {
-    #gameCanvas {
-        height: 85vh;
-        width: auto;  /* Keep the aspect ratio */
-    }
+/* Responsive adjustments for all screens */
+.game-container {
+    max-width: 100vw;
+    max-height: 90vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-@media (max-width: 1024px) {
-    #gameCanvas {
-        width: 95vw;
-        height: auto;  /* Keep the aspect ratio */
+#gameCanvas {
+    max-width: 100%;
+    max-height: 85vh;
+    object-fit: contain;
+}
+
+/* Improved controls display for smaller screens */
+.controls-info {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #999;
+    text-align: center;
+    padding: 5px;
+    width: 100%;
+}
+
+/* Touch controls for mobile devices */
+.touch-controls {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 100;
+    justify-content: space-around;
+}
+
+.touch-button {
+    width: 60px;
+    height: 60px;
+    background-color: rgba(50, 50, 50, 0.7);
+    border: 2px solid rgba(100, 150, 255, 0.7);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    color: white;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.touch-button:active {
+    background-color: rgba(100, 150, 255, 0.7);
+}
+
+/* Show touch controls only on mobile devices */
+@media (max-width: 768px), (pointer: coarse) {
+    .touch-controls {
+        display: flex;
+    }
+    
+    .game-container {
+        max-height: 80vh; /* Make room for touch controls */
+    }
+    
+    body {
+        padding-bottom: 80px;
     }
 }

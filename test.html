@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Tester</title>
+    <style>
+        body {
+            background: #222;
+            color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        canvas {
+            border: 1px solid #444;
+            margin: 20px auto;
+            display: block;
+            background: black;
+        }
+        #controls {
+            margin: 20px auto;
+            max-width: 500px;
+        }
+        button {
+            background: #2196F3;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            padding: 10px 20px;
+        }
+        button:hover {
+            background: #0b7dda;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mission to Touch Down - Tester</h1>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    
+    <div id="controls">
+        <button id="testCanvas">Test Canvas</button>
+        <button id="testConstants">Test Constants</button>
+        <button id="testPlanet">Test Planet</button>
+        <button id="testSpacecraft">Test Spacecraft</button>
+        <button id="testGame">Test Game</button>
+    </div>
+    
+    <div id="output" style="text-align: left; margin: 20px auto; max-width: 800px; background: #333; padding: 15px; border-radius: 8px; white-space: pre-wrap;"></div>
+    
+    <script>
+        // Output function
+        function log(message) {
+            const output = document.getElementById('output');
+            output.textContent += message + '\n';
+            console.log(message);
+        }
+        
+        // Test canvas functionality
+        document.getElementById('testCanvas').addEventListener('click', function() {
+            log('Testing canvas...');
+            const canvas = document.getElementById('gameCanvas');
+            try {
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = 'green';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.font = '30px Arial';
+                ctx.fillStyle = 'white';
+                ctx.textAlign = 'center';
+                ctx.fillText('Canvas is working!', canvas.width/2, canvas.height/2);
+                log('Canvas test successful!');
+            } catch (e) {
+                log('Canvas error: ' + e.message);
+            }
+        });
+        
+        // Test constants.js
+        document.getElementById('testConstants').addEventListener('click', function() {
+            log('Testing constants.js...');
+            try {
+                const script = document.createElement('script');
+                script.src = 'js/constants.js';
+                script.onload = function() {
+                    log('constants.js loaded successfully!');
+                    try {
+                        log('WINDOW_WIDTH = ' + WINDOW_WIDTH);
+                        log('WINDOW_HEIGHT = ' + WINDOW_HEIGHT);
+                    } catch (e) {
+                        log('Error accessing constants: ' + e.message);
+                    }
+                };
+                script.onerror = function() {
+                    log('Failed to load constants.js');
+                };
+                document.body.appendChild(script);
+            } catch (e) {
+                log('Error loading constants.js: ' + e.message);
+            }
+        });
+        
+        // More tests for other components can be added similarly
+        
+        // Initial log
+        log('Test page loaded successfully. Click the buttons above to test different components.');
+    </script>
+    
+    <!-- Include the test script -->
+    <script src="js/test.js"></script>
+</body>
+</html>

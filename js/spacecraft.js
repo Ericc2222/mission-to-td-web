@@ -63,6 +63,12 @@ class Spacecraft {
     }
 
     update(planet) {
+        // Error handling for planet parameter
+        if (!planet) {
+            console.error("Planet is undefined in spacecraft update");
+            return null;
+        }
+        
         // Store reference to current planet
         this.currentPlanet = planet;
         
@@ -78,19 +84,29 @@ class Spacecraft {
             this.fuelWarningTimer--;
         }
 
-        // Apply gravity
-        this.velocityY += planet.gravity * 0.016; // 1/60th of a second
+        try {
+            // Apply gravity (with error handling)
+            if (typeof planet.gravity === 'number') {
+                this.velocityY += planet.gravity * 0.016; // 1/60th of a second
+            } else {
+                console.error("Planet gravity is not a number:", planet.gravity);
+                // Use a default value to prevent errors
+                this.velocityY += 3.0 * 0.016;
+            }
 
-        // Apply wind force if there's atmosphere
-        if (planet.hasAtmosphere) {
-            // Wind effect is stronger at higher altitudes
-            const altitudeFactor = Math.min(1.0, (WINDOW_HEIGHT - this.y) / WINDOW_HEIGHT);
-            const effectiveWind = planet.windForce * altitudeFactor;
-            this.velocityX += effectiveWind * 0.016;
-            
-            // Simple air resistance
-            this.velocityX *= 0.99; // Slight horizontal drag
-            this.velocityY *= 0.99; // Slight vertical drag
+            // Apply wind force if there's atmosphere
+            if (planet.hasAtmosphere) {
+                // Wind effect is stronger at higher altitudes
+                const altitudeFactor = Math.min(1.0, (WINDOW_HEIGHT - this.y) / WINDOW_HEIGHT);
+                const effectiveWind = planet.windForce * altitudeFactor;
+                this.velocityX += effectiveWind * 0.016;
+                
+                // Simple air resistance
+                this.velocityX *= 0.99; // Slight horizontal drag
+                this.velocityY *= 0.99; // Slight vertical drag
+            }
+        } catch (error) {
+            console.error("Error in spacecraft update:", error);
         }
 
         // Apply atmospheric drag if planet has atmosphere and parachute is deployed
@@ -166,166 +182,213 @@ class Spacecraft {
     }
 
     draw(ctx) {
-        // Draw fuel warning when low
-        if (this.fuel <= 10 && this.fuelWarningTimer > 0 && !this.landed) {
-            ctx.fillStyle = RED;
-            ctx.font = "48px Arial";
-            ctx.textAlign = "center";
-            ctx.fillText("LOW FUEL!", WINDOW_WIDTH/2, 50);
-        }
-
-        // Draw landing effect if just landed
-        if (this.landed && this.landingEffectTimer > 0) {
-            // Draw expanding circle
-            const effectRadius = (60 - this.landingEffectTimer) * 2;
-            const effectAlpha = this.landingEffectTimer / 60;
-            ctx.strokeStyle = `rgba(50, 255, 50, ${effectAlpha})`;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(this.x, this.y + this.height/2, effectRadius, 0, Math.PI * 2);
-            ctx.stroke();
-        }
-
-        // Draw the spacecraft body
-        const points = [
-            { x: this.x - this.width/3, y: this.y + this.height/2 },  // Bottom left
-            { x: this.x + this.width/3, y: this.y + this.height/2 },  // Bottom right
-            { x: this.x + this.width/4, y: this.y },                  // Middle right
-            { x: this.x, y: this.y - this.height/2 },                 // Top
-            { x: this.x - this.width/4, y: this.y },                  // Middle left
-        ];
-        
-        // No rotation needed since spacecraft is always upright in this game
-        
-        // Draw the spacecraft body
-        ctx.fillStyle = WHITE;
-        ctx.beginPath();
-        ctx.moveTo(points[0].x, points[0].y);
-        for (let i = 1; i < points.length; i++) {
-            ctx.lineTo(points[i].x, points[i].y);
-        }
-        ctx.closePath();
-        ctx.fill();
-        
-        // Draw the outline
-        ctx.strokeStyle = BLUE;
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        // Draw landing legs when close to ground or landed
-        const groundY = this.currentPlanet ? WINDOW_HEIGHT - this.currentPlanet.surfaceHeight : WINDOW_HEIGHT - 150;
-        if (this.y + this.height/2 >= groundY - 100 || this.landed) {
-            const legLength = 15;
-            const leftLegStart = points[0];  // Bottom left point
-            const rightLegStart = points[1];  // Bottom right point
+        try {
+            // Make sure ctx exists
+            if (!ctx) {
+                console.error("Canvas context is undefined in spacecraft draw");
+                return;
+            }
             
-            // Left leg
-            const leftLegEnd = { x: leftLegStart.x - 10, y: leftLegStart.y + legLength };
-            ctx.strokeStyle = BLUE;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(leftLegStart.x, leftLegStart.y);
-            ctx.lineTo(leftLegEnd.x, leftLegEnd.y);
-            ctx.stroke();
+            // Draw fuel warning when low
+            if (this.fuel <= 10 && this.fuelWarningTimer > 0 && !this.landed) {
+                ctx.fillStyle = RED;
+                ctx.font = "48px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText("LOW FUEL!", WINDOW_WIDTH/2, 50);
+            }
+    
+            // Draw landing effect if just landed
+            if (this.landed && this.landingEffectTimer > 0) {
+                // Draw expanding circle
+                const effectRadius = (60 - this.landingEffectTimer) * 2;
+                const effectAlpha = this.landingEffectTimer / 60;
+                ctx.strokeStyle = `rgba(50, 255, 50, ${effectAlpha})`;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y + this.height/2, effectRadius, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+    
+            // Make sure position and dimensions are defined
+            if (typeof this.x !== 'number' || typeof this.y !== 'number' ||
+                typeof this.width !== 'number' || typeof this.height !== 'number') {
+                console.error("Invalid spacecraft dimensions:", 
+                    {x: this.x, y: this.y, width: this.width, height: this.height});
+                
+                // Use default values to avoid errors
+                this.x = this.x || WINDOW_WIDTH/2;
+                this.y = this.y || 100;
+                this.width = this.width || 40;
+                this.height = this.height || 60;
+            }
             
-            // Right leg
-            const rightLegEnd = { x: rightLegStart.x + 10, y: rightLegStart.y + legLength };
-            ctx.beginPath();
-            ctx.moveTo(rightLegStart.x, rightLegStart.y);
-            ctx.lineTo(rightLegEnd.x, rightLegEnd.y);
-            ctx.stroke();
-        }
-
-        // Draw thrust flame when thrusting
-        if (this.isThrusting && this.fuel > 0 && !this.landed) {
-            const flamePoints = [
-                { x: this.x - this.width/4, y: this.y + this.height/2 },
-                { x: this.x + this.width/4, y: this.y + this.height/2 },
-                { x: this.x, y: this.y + this.height/2 + 20 }
+            // Draw the spacecraft body
+            const points = [
+                { x: this.x - this.width/3, y: this.y + this.height/2 },  // Bottom left
+                { x: this.x + this.width/3, y: this.y + this.height/2 },  // Bottom right
+                { x: this.x + this.width/4, y: this.y },                  // Middle right
+                { x: this.x, y: this.y - this.height/2 },                 // Top
+                { x: this.x - this.width/4, y: this.y },                  // Middle left
             ];
             
-            ctx.fillStyle = ORANGE;
+            // No rotation needed since spacecraft is always upright in this game
+            
+            // Draw the spacecraft body
+            ctx.fillStyle = WHITE;
             ctx.beginPath();
-            ctx.moveTo(flamePoints[0].x, flamePoints[0].y);
-            ctx.lineTo(flamePoints[1].x, flamePoints[1].y);
-            ctx.lineTo(flamePoints[2].x, flamePoints[2].y);
+            ctx.moveTo(points[0].x, points[0].y);
+            for (let i = 1; i < points.length; i++) {
+                ctx.lineTo(points[i].x, points[i].y);
+            }
             ctx.closePath();
             ctx.fill();
+            
+            // Draw the outline
+            ctx.strokeStyle = BLUE;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        } catch (error) {
+            console.error("Error in spacecraft draw method:", error);
         }
 
-        // Draw parachute if deployed
-        if (this.parachuteDeployed && !this.landed) {
-            const parachuteTop = { x: this.x, y: this.y - this.height };
-            const parachuteLeft = { x: this.x - this.width, y: this.y - this.height/2 };
-            const parachuteRight = { x: this.x + this.width, y: this.y - this.height/2 };
+        try {
+            // Draw landing legs when close to ground or landed
+            const groundY = this.currentPlanet ? WINDOW_HEIGHT - (this.currentPlanet.surfaceHeight || 150) : WINDOW_HEIGHT - 150;
             
-            ctx.fillStyle = RED;
-            ctx.beginPath();
-            ctx.moveTo(parachuteLeft.x, parachuteLeft.y);
-            ctx.lineTo(parachuteTop.x, parachuteTop.y);
-            ctx.lineTo(parachuteRight.x, parachuteRight.y);
-            ctx.closePath();
-            ctx.fill();
-            
-            // Draw parachute lines
-            ctx.strokeStyle = WHITE;
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            // Left line
-            ctx.moveTo(parachuteLeft.x, parachuteLeft.y);
-            ctx.lineTo(this.x, this.y - this.height/2);
-            // Right line
-            ctx.moveTo(parachuteRight.x, parachuteRight.y);
-            ctx.lineTo(this.x, this.y - this.height/2);
-            // Middle line
-            ctx.moveTo(parachuteTop.x, parachuteTop.y);
-            ctx.lineTo(this.x, this.y - this.height/2);
-            ctx.stroke();
+            if (this.y + this.height/2 >= groundY - 100 || this.landed) {
+                const legLength = 15;
+                
+                // Make sure points array is defined and has elements
+                if (!points || points.length < 2) {
+                    console.error("Points array is undefined or insufficient length in spacecraft draw");
+                    return;
+                }
+                
+                const leftLegStart = points[0];  // Bottom left point
+                const rightLegStart = points[1];  // Bottom right point
+                
+                // Left leg
+                const leftLegEnd = { x: leftLegStart.x - 10, y: leftLegStart.y + legLength };
+                ctx.strokeStyle = BLUE;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(leftLegStart.x, leftLegStart.y);
+                ctx.lineTo(leftLegEnd.x, leftLegEnd.y);
+                ctx.stroke();
+                
+                // Right leg
+                const rightLegEnd = { x: rightLegStart.x + 10, y: rightLegStart.y + legLength };
+                ctx.beginPath();
+                ctx.moveTo(rightLegStart.x, rightLegStart.y);
+                ctx.lineTo(rightLegEnd.x, rightLegEnd.y);
+                ctx.stroke();
+            }
+    
+            // Draw thrust flame when thrusting
+            if (this.isThrusting && this.fuel > 0 && !this.landed) {
+                const flamePoints = [
+                    { x: this.x - this.width/4, y: this.y + this.height/2 },
+                    { x: this.x + this.width/4, y: this.y + this.height/2 },
+                    { x: this.x, y: this.y + this.height/2 + 20 }
+                ];
+                
+                ctx.fillStyle = ORANGE;
+                ctx.beginPath();
+                ctx.moveTo(flamePoints[0].x, flamePoints[0].y);
+                ctx.lineTo(flamePoints[1].x, flamePoints[1].y);
+                ctx.lineTo(flamePoints[2].x, flamePoints[2].y);
+                ctx.closePath();
+                ctx.fill();
+            }
+    
+            // Draw parachute if deployed
+            if (this.parachuteDeployed && !this.landed) {
+                const parachuteTop = { x: this.x, y: this.y - this.height };
+                const parachuteLeft = { x: this.x - this.width, y: this.y - this.height/2 };
+                const parachuteRight = { x: this.x + this.width, y: this.y - this.height/2 };
+                
+                ctx.fillStyle = RED;
+                ctx.beginPath();
+                ctx.moveTo(parachuteLeft.x, parachuteLeft.y);
+                ctx.lineTo(parachuteTop.x, parachuteTop.y);
+                ctx.lineTo(parachuteRight.x, parachuteRight.y);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Draw parachute lines
+                ctx.strokeStyle = WHITE;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                // Left line
+                ctx.moveTo(parachuteLeft.x, parachuteLeft.y);
+                ctx.lineTo(this.x, this.y - this.height/2);
+                // Right line
+                ctx.moveTo(parachuteRight.x, parachuteRight.y);
+                ctx.lineTo(this.x, this.y - this.height/2);
+                // Middle line
+                ctx.moveTo(parachuteTop.x, parachuteTop.y);
+                ctx.lineTo(this.x, this.y - this.height/2);
+                ctx.stroke();
+            }
+        } catch (error) {
+            console.error("Error drawing spacecraft components:", error);
         }
     }
 
     drawWindIndicator(ctx, planet) {
-        if (!planet.hasAtmosphere) {
-            return;
-        }
+        try {
+            // Error checking
+            if (!ctx || !planet) {
+                console.error("Missing context or planet in drawWindIndicator");
+                return;
+            }
             
-        // Draw wind direction and strength
-        const windX = 20;
-        const windY = 140;
-        const windLength = Math.abs(planet.windForce) * 200;
-        const windColor = Math.abs(planet.windForce) < 0.1 ? GREEN : 
-                         (Math.abs(planet.windForce) < 0.2 ? YELLOW : RED);
-        
-        // Draw wind label
-        ctx.fillStyle = WHITE;
-        ctx.font = '16px Arial';
-        ctx.textAlign = 'left';
-        ctx.fillText('Wind:', windX, windY - 15);
-        
-        // Draw wind arrow
-        if (planet.windForce !== 0) {
-            const direction = planet.windForce > 0 ? 1 : -1;
+            if (!planet.hasAtmosphere) {
+                return;
+            }
             
-            // Draw line
-            ctx.strokeStyle = windColor;
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(windX, windY);
-            ctx.lineTo(windX + windLength * direction, windY);
-            ctx.stroke();
+            // Draw wind direction and strength
+            const windX = 20;
+            const windY = 140;
+            const windForce = typeof planet.windForce === 'number' ? planet.windForce : 0;
+            const windLength = Math.abs(windForce) * 200;
             
-            // Arrow head
-            ctx.fillStyle = windColor;
-            ctx.beginPath();
-            ctx.moveTo(windX + windLength * direction, windY);
-            ctx.lineTo(windX + windLength * direction - 10 * direction, windY - 5);
-            ctx.lineTo(windX + windLength * direction - 10 * direction, windY + 5);
-            ctx.closePath();
-            ctx.fill();
-        } else {
-            // No wind indicator
-            ctx.fillStyle = GREEN;
-            ctx.fillText('None', windX + 10, windY);
+            const windColor = Math.abs(windForce) < 0.1 ? GREEN : 
+                              (Math.abs(windForce) < 0.2 ? YELLOW : RED);
+            
+            // Draw wind label
+            ctx.fillStyle = WHITE;
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('Wind:', windX, windY - 15);
+            
+            // Draw wind arrow
+            if (windForce !== 0) {
+                const direction = windForce > 0 ? 1 : -1;
+                
+                // Draw line
+                ctx.strokeStyle = windColor;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(windX, windY);
+                ctx.lineTo(windX + windLength * direction, windY);
+                ctx.stroke();
+                
+                // Arrow head
+                ctx.fillStyle = windColor;
+                ctx.beginPath();
+                ctx.moveTo(windX + windLength * direction, windY);
+                ctx.lineTo(windX + windLength * direction - 10 * direction, windY - 5);
+                ctx.lineTo(windX + windLength * direction - 10 * direction, windY + 5);
+                ctx.closePath();
+                ctx.fill();
+            } else {
+                // No wind indicator
+                ctx.fillStyle = GREEN;
+                ctx.fillText('None', windX + 10, windY);
+            }
+        } catch (error) {
+            console.error("Error in drawWindIndicator:", error);
         }
     }
 }

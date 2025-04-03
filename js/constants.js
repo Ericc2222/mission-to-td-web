@@ -1,6 +1,6 @@
 // Game constants
-const WINDOW_WIDTH = 1024;
-const WINDOW_HEIGHT = 768;
+const WINDOW_WIDTH = 1280;
+const WINDOW_HEIGHT = 720;
 const FPS = 60;
 
 // Game states
@@ -53,21 +53,38 @@ function toRadians(degrees) {
 
 // Function to handle responsive canvas sizing
 function resizeCanvas(canvas) {
+    // Prevent canvas from being cleared by keeping the original dimensions
+    // Always render at the base resolution - more reliable
+    canvas.width = WINDOW_WIDTH;
+    canvas.height = WINDOW_HEIGHT;
+    
     const container = canvas.parentElement;
-    const containerWidth = container.clientWidth;
-    const containerHeight = container.clientHeight;
+    const containerWidth = Math.min(window.innerWidth, container.clientWidth);
+    const containerHeight = Math.min(window.innerHeight - 50, container.clientHeight); // Account for controls info
     const containerRatio = containerWidth / containerHeight;
     const gameRatio = WINDOW_WIDTH / WINDOW_HEIGHT;
     
+    // Calculate the display size based on container
+    let displayWidth, displayHeight;
     if (containerRatio > gameRatio) {
         // Container is wider than game ratio
-        canvas.style.height = '100%';
-        canvas.style.width = 'auto';
+        displayHeight = containerHeight;
+        displayWidth = displayHeight * gameRatio;
     } else {
         // Container is taller than game ratio
-        canvas.style.width = '100%';
-        canvas.style.height = 'auto';
+        displayWidth = containerWidth;
+        displayHeight = displayWidth / gameRatio;
     }
+    
+    // Set the canvas display size via CSS
+    canvas.style.width = `${displayWidth}px`;
+    canvas.style.height = `${displayHeight}px`;
+    
+    // Store scale factor as a global variable for input calculations
+    const scaleFactor = displayWidth / WINDOW_WIDTH;
+    window.gameScaleFactor = scaleFactor;
+    
+    return scaleFactor;
 }
 
 // Function to draw stars
